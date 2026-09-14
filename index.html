@@ -512,21 +512,50 @@ function resetBorrowForm(){
     document.getElementById('borrowQty').value='';
     document.getElementById('borrowPerson').value='';
 }
-async function submitBorrow(){
-    if(borrowCart.length===0){showAlert('请先添加至少一种图书到清单','error');return;}
-    const person=document.getElementById('borrowPerson').value.trim();
-    if(!person){showAlert('请输入领用人姓名','error');return;}
-    const btn=document.getElementById('btnSubmitBorrow');
-    btn.disabled=true;btn.textContent='提交中...';
-    const res = await fetchAPI('batchAddRecords', { items: borrowCart, person: person }, 'POST');
-    btn.disabled=false;btn.textContent='✅ 确认领用全部';
-    if(res.success){
-        const count=borrowCart.reduce((s,x)=>s+x.qty,0);
+async function submitBorrow() {
+    if (borrowCart.length === 0) {
+        showAlert('请先添加至少一种图书到清单', 'error');
+        return;
+    }
+    const person = document.getElementById('borrowPerson').value.trim();
+    if (!person) {
+        showAlert('请输入领用人姓名', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btnSubmitBorrow');
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+
+    let successCount = 0;
+    let failMessages = [];
+
+    // 循环提交每一本书
+    for (const item of borrowCart) {
+        const params = {
+            boxNo: item.boxNo,
+            bookName: item.bookName,
+            qty: item.qty,
+            person: person
+        };
+        const res = await fetchAPI('addRecord', params);  // 使用 GET 方式
+        if (res.success) {
+            successCount += item.qty;
+        } else {
+            failMessages.push(`《${item.bookName}》：${res.message || '失败'}`);
+        }
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✅ 确认领用全部';
+
+    if (failMessages.length === 0) {
         resetBorrowForm();
         await reloadAllData();
-        showAlert('✅ 领用成功！共 '+count+' 本','success');
-    }else{
-        showAlert('领用失败：'+(res.message||'未知错误'),'error');
+        showAlert(`✅ 领用成功！共 ${successCount} 本`, 'success');
+    } else {
+        showAlert(`部分领用失败：${failMessages.join('；')}`, 'error');
+        await reloadAllData();  // 刷新以显示已成功的部分
     }
 }
 
