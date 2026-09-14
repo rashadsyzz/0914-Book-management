@@ -1075,10 +1075,10 @@
             return [...set].sort((a,b)=>String(a).localeCompare(String(b),'zh-CN',{numeric:true}));
         }
         function getBooksByBox(boxNo) {
-            return books.filter(b=>b.boxNo===boxNo && getRemainQty(b)>0);
+            return books.filter(b=>String(b.boxNo)===String(boxNo) && getRemainQty(b)>0);
         }
         function findBook(boxNo, bookName) {
-            return books.find(b=>b.boxNo===boxNo && b.bookName===bookName);
+            return books.find(b=>String(b.boxNo)===String(boxNo) && b.bookName===bookName);
         }
 
         function updateHeaderStats() {
@@ -1380,8 +1380,8 @@
             const filterBox = document.getElementById('filterBoxNo').value;
             const filterStatus = document.getElementById('filterStatus').value;
             return books.filter(b => {
-                if (searchText && !b.bookName.toLowerCase().includes(searchText) && !b.boxNo.toLowerCase().includes(searchText)) return false;
-                if (filterBox && b.boxNo !== filterBox) return false;
+                if (searchText && !b.bookName.toLowerCase().includes(searchText) && !String(b.boxNo).toLowerCase().includes(searchText)) return false;
+                if (filterBox && String(b.boxNo) !== String(filterBox)) return false;
                 if (filterStatus) {
                     const remain = getRemainQty(b);
                     if (filterStatus === 'available' && remain === 0) return false;
@@ -1453,7 +1453,7 @@
             const searchText = document.getElementById('recordSearchInput').value.trim().toLowerCase();
             let filtered = records;
             if (searchText) {
-                filtered = records.filter(r => r.person.toLowerCase().includes(searchText) || r.bookName.toLowerCase().includes(searchText) || r.boxNo.toLowerCase().includes(searchText));
+                filtered = records.filter(r => r.person.toLowerCase().includes(searchText) || r.bookName.toLowerCase().includes(searchText) || String(r.boxNo).toLowerCase().includes(searchText));
             }
             filtered = [...filtered].sort((a,b)=>b.id-a.id);
             const totalPages = Math.max(1, Math.ceil(filtered.length / recordsPageSize));
