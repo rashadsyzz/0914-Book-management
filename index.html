@@ -320,21 +320,29 @@ let recordsPage=1;
 const inventoryPageSize=30;
 const recordsPageSize=20;
 
-async function fetchAPI(action,params={},method='GET'){
-    try{
+async function fetchAPI(action, params = {}, method = 'GET') {
+    try {
         let response;
-        if(method==='POST'){
-            const body=new URLSearchParams();
-            for(const k in params)body.append(k,params[k]);
-            response=await fetch(API_URL,{method:'POST',body:body,headers:{'Content-Type':'application/x-www-form-urlencoded'}});
-        }else{
-            const url=new URL(API_URL);
-            url.searchParams.append('action',action);
-            for(const k in params)url.searchParams.append(k,params[k]);
-            response=await fetch(url,{method:'GET'});
+        if (method === 'POST') {
+            const bodyData = { action: action };
+            for (const k in params) bodyData[k] = params[k];
+            response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify(bodyData),
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } else {
+            const url = new URL(API_URL);
+            url.searchParams.append('action', action);
+            for (const k in params) url.searchParams.append(k, params[k]);
+            response = await fetch(url, { method: 'GET' });
         }
         return await response.json();
-    }catch(err){console.error('API失败:',err);showAlert('网络错误，请检查连接','error');return{success:false};}
+    } catch (err) {
+        console.error('API失败:', err);
+        showAlert('网络错误，请检查连接', 'error');
+        return { success: false };
+    }
 }
 
 async function reloadAllData(){
@@ -510,7 +518,7 @@ async function submitBorrow(){
     if(!person){showAlert('请输入领用人姓名','error');return;}
     const btn=document.getElementById('btnSubmitBorrow');
     btn.disabled=true;btn.textContent='提交中...';
-    const res=await fetchAPI('batchAddRecords',{items:JSON.stringify(borrowCart),person:person});
+    const res = await fetchAPI('batchAddRecords', { items: borrowCart, person: person }, 'POST');
     btn.disabled=false;btn.textContent='✅ 确认领用全部';
     if(res.success){
         const count=borrowCart.reduce((s,x)=>s+x.qty,0);
