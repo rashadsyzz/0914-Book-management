@@ -510,7 +510,7 @@ async function submitBorrow(){
     if(!person){showAlert('请输入领用人姓名','error');return;}
     const btn=document.getElementById('btnSubmitBorrow');
     btn.disabled=true;btn.textContent='提交中...';
-    const res=await fetchAPI('batchAddRecords',{items:JSON.stringify(borrowCart),person:person},'POST');
+    const res=await fetchAPI('batchAddRecords',{items:JSON.stringify(borrowCart),person:person});
     btn.disabled=false;btn.textContent='✅ 确认领用全部';
     if(res.success){
         const count=borrowCart.reduce((s,x)=>s+x.qty,0);
