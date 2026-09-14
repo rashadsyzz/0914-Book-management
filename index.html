@@ -1042,10 +1042,23 @@
         }
 
         async function reloadAllData() {
-            await Promise.all([loadBooks(), loadRecords()]);
-            updateAllUI();
-        }
-
+    const res = await fetchAPI('getAll');
+    if (res.success) {
+        books = res.books || [];
+        records = res.records || [];
+        // 缓存到本地，加速下次打开
+        try {
+            localStorage.setItem('bookCache_v1', JSON.stringify({
+                books: books,
+                records: records,
+                time: Date.now()
+            }));
+        } catch(e) {}
+    } else {
+        showAlert('加载数据失败', 'error');
+    }
+    updateAllUI();
+}
         // ==================== UI更新 ====================
         function updateAllUI() {
             updateHeaderStats();
@@ -1494,11 +1507,23 @@
 
         // ==================== 初始化 ====================
         async function init() {
-            setupTabNavigation();
-            updateAdminUI();
-            await reloadAllData();
-            // 管理员登录按钮默认显示
+    setupTabNavigation();
+    updateAdminUI();
+
+    // 先用缓存快速显示，避免等待
+    try {
+        const cache = localStorage.getItem('bookCache_v1');
+        if (cache) {
+            const c = JSON.parse(cache);
+            books = c.books || [];
+            records = c.records || [];
+            updateAllUI();
         }
+    } catch(e) {}
+
+    // 后台请求最新数据（自动覆盖缓存）
+    await reloadAllData();
+}
 
         document.addEventListener('DOMContentLoaded', init);
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
